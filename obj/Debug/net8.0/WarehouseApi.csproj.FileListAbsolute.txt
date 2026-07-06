@@ -141,3 +141,6 @@
 /Users/egagofur/Development/work/training/WarehouseApi/bin/Debug/net8.0/tr/Microsoft.CodeAnalysis.Workspaces.resources.dll
 /Users/egagofur/Development/work/training/WarehouseApi/bin/Debug/net8.0/zh-Hans/Microsoft.CodeAnalysis.Workspaces.resources.dll
 /Users/egagofur/Development/work/training/WarehouseApi/bin/Debug/net8.0/zh-Hant/Microsoft.CodeAnalysis.Workspaces.resources.dll
+/Users/egagofur/Development/work/training/WarehouseApi/obj/Debug/net8.0/WarehouseApi.sourcelink.json
+/Users/egagofur/Development/work/training/WarehouseApi/bin/Debug/net8.0/BCrypt.Net-Next.dll
+/Users/egagofur/Development/work/training/WarehouseApi/bin/Debug/net8.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll

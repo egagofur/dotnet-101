@@ -59,7 +59,7 @@ public class UserService : IUserService
                 Id = Guid.NewGuid(),
                 Name = request.Name,
                 Email = request.Email,
-                Password = request.Password, // TODO: Hash password in a real application
+                Password = BCrypt.Net.BCrypt.HashPassword(request.Password),
                 RoleId = role.Id,
                 Status = request.Status,
                 CreatedAt = now,
@@ -108,7 +108,7 @@ public class UserService : IUserService
 
             user.Name = request.Name;
             user.Email = request.Email;
-            user.Password = request.Password; // TODO: Hash password in a real application
+            user.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
             user.RoleId = role.Id;
             user.Status = request.Status;
             user.UpdatedAt = DateTime.UtcNow;

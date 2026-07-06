@@ -1,0 +1,38 @@
+## Build outputs
+**/bin/
+**/obj/
+
+## IDE and Editor configurations
+.vs/
+.idea/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Rider / Resharper
+*.sln.DotSettings.user
+.rider/
+
+## OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+## Local configurations & secrets
+*.local.json
+.env
+.env.*
+
+## Entity Framework Core Migrations tool artifacts
+*.db-journal
+*.db-shm
+*.db-wal
+
+## Logs
+*.log
