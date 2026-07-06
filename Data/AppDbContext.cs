@@ -10,6 +10,9 @@ public class AppDbContext : DbContext
 
   public DbSet<Users> Users => Set<Users>();
   public DbSet<Roles> Roles => Set<Roles>();
+  public DbSet<Products> Products => Set<Products>();
+  public DbSet<InventoryMovements> InventoryMovements => Set<InventoryMovements>();
+  public DbSet<DailyStockReports> DailyStockReports => Set<DailyStockReports>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
@@ -93,6 +96,74 @@ public class AppDbContext : DbContext
         Description = "Warehouse Operator",
         CreatedAt = new DateTime(2026, 7, 3, 0, 0, 0, DateTimeKind.Utc),
         UpdatedAt = new DateTime(2026, 7, 3, 0, 0, 0, DateTimeKind.Utc)
+      }
+    );
+
+    modelBuilder.Entity<Products>(entity =>
+    {
+      entity.ToTable("products");
+      entity.HasKey(e => e.Id);
+      entity.Property(e => e.Id).ValueGeneratedNever();
+      entity.Property(e => e.Sku).IsRequired().HasMaxLength(100);
+      entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
+      entity.Property(e => e.Stock).IsRequired().HasDefaultValue(0);
+      entity.Property(e => e.CreatedAt).IsRequired();
+      entity.Property(e => e.UpdatedAt).IsRequired();
+    });
+
+    modelBuilder.Entity<InventoryMovements>(entity =>
+    {
+      entity.ToTable("inventory_movements");
+      entity.HasKey(e => e.Id);
+      entity.Property(e => e.Id).ValueGeneratedNever();
+      entity.Property(e => e.Type).IsRequired().HasMaxLength(10);
+      entity.Property(e => e.Quantity).IsRequired();
+      entity.Property(e => e.CreatedAt).IsRequired();
+
+      entity.HasOne(e => e.Product)
+            .WithMany(p => p.Movements)
+            .HasForeignKey(e => e.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+      entity.HasOne(e => e.User)
+            .WithMany()
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+    });
+
+    modelBuilder.Entity<DailyStockReports>(entity =>
+    {
+      entity.ToTable("daily_stock_reports");
+      entity.HasKey(e => e.Id);
+      entity.Property(e => e.Id).ValueGeneratedNever();
+      entity.Property(e => e.StockSnapshot).IsRequired();
+      entity.Property(e => e.ReportDate).IsRequired();
+      entity.Property(e => e.CreatedAt).IsRequired();
+
+      entity.HasOne(e => e.Product)
+            .WithMany(p => p.DailyReports)
+            .HasForeignKey(e => e.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+    });
+
+    modelBuilder.Entity<Products>().HasData(
+      new Products
+      {
+        Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+        Sku = "PROD-001",
+        Name = "Laptop Dell XPS 15",
+        Stock = 10,
+        CreatedAt = new DateTime(2026, 7, 6, 0, 0, 0, DateTimeKind.Utc),
+        UpdatedAt = new DateTime(2026, 7, 6, 0, 0, 0, DateTimeKind.Utc)
+      },
+      new Products
+      {
+        Id = Guid.Parse("22222222-2222-2222-2222-222222222222"),
+        Sku = "PROD-002",
+        Name = "Mouse Logitech MX Master 3S",
+        Stock = 50,
+        CreatedAt = new DateTime(2026, 7, 6, 0, 0, 0, DateTimeKind.Utc),
+        UpdatedAt = new DateTime(2026, 7, 6, 0, 0, 0, DateTimeKind.Utc)
       }
     );
   }

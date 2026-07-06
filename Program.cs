@@ -10,6 +10,9 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using WarehouseApi.Utils;
 using WarehouseApi.Filters;
+using Coravel;
+using WarehouseApi.BackgroundJobs;
+using WarehouseApi.Infrastructure.ExternalServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +24,27 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Configure Coravel Background Services
+builder.Services.AddScheduler();
+builder.Services.AddQueue();
+
+// Register Coravel Invocables (Jobs)
+builder.Services.AddTransient<DailyStockReportJob>();
+builder.Services.AddTransient<SendMovementNotificationJob>();
+
+// Configure Resilient Typed HttpClient for Third-Party Integration
+builder.Services.AddHttpClient<ExternalNotificationClient>(client =>
+{
+    var baseApiUrl = builder.Configuration["ThirdParty:NotificationApiUrl"] ?? "https://api.mocknotification.com/v1/";
+    if (!baseApiUrl.EndsWith("/"))
+    {
+        baseApiUrl += "/";
+    }
+    client.BaseAddress = new Uri(baseApiUrl);
+    client.Timeout = TimeSpan.FromSeconds(10);
+})
+.AddStandardResilienceHandler();
 
 // Configure JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key belum diatur di appsettings.");
@@ -153,5 +177,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Configure Coravel Scheduler
+app.Services.UseScheduler(scheduler =>
+{
+    scheduler.Schedule<DailyStockReportJob>()
+             .EveryMinute()
+             .PreventOverlapping("DailyStockReportJob");
+});
 
 app.Run();
