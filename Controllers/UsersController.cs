@@ -50,9 +50,9 @@ public class UsersController : ControllerBase
 
     [Authorize(Roles = "admin")]
     [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<ActionResult<string>> Delete(Guid id)
     {
         await _userService.DeleteAsync(id);
-        return NoContent();
+        return Ok("User berhasil dihapus.");
     }
 }

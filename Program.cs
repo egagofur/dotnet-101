@@ -7,6 +7,9 @@ using WarehouseApi.Services.Implementations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using WarehouseApi.Utils;
+using WarehouseApi.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,7 +46,11 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddControllers()
+builder.Services.AddControllers(options =>
+{
+    options.Conventions.Add(new RouteTokenTransformerConvention(new KebabCaseParameterTransformer()));
+    options.Filters.Add<ApiResponseFilter>();
+})
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
