@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
-using WarehouseApi.Utils;
+using WarehouseApi.Helpers;
 using WarehouseApi.Filters;
 using Coravel;
 using WarehouseApi.BackgroundJobs;

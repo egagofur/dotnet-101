@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace WarehouseApi.DTOs;
+namespace WarehouseApi.Helpers;
 
 public class ApiResponse<T>
 {

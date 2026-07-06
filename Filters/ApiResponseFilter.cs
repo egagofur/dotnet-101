@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using WarehouseApi.DTOs;
+using WarehouseApi.Helpers;
 
 namespace WarehouseApi.Filters;
 
