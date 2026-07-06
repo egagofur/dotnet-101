@@ -1,6 +1,6 @@
 using WarehouseApi.Models;
 
-namespace WarehouseApi.Repositories;
+namespace WarehouseApi.Repositories.Interface;
 
 public interface IUserRepository
 {

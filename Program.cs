@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WarehouseApi.Data;
-using WarehouseApi.Repositories;
+using WarehouseApi.Repositories.Implementations;
+using WarehouseApi.Repositories.Interface;
 using WarehouseApi.Services.Interface;
 using WarehouseApi.Services.Implementations;
 
@@ -22,8 +23,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Register Repository and Service Layer
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 // Configure Coravel Background Services
 builder.Services.AddScheduler();

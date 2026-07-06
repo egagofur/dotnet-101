@@ -1,7 +1,7 @@
 using WarehouseApi.Data;
 using WarehouseApi.DTOs;
 using WarehouseApi.Models;
-using WarehouseApi.Repositories;
+using WarehouseApi.Repositories.Interface;
 using WarehouseApi.Services.Interface;
 
 namespace WarehouseApi.Services.Implementations;

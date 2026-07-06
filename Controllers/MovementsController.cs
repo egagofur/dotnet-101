@@ -7,6 +7,7 @@ using WarehouseApi.Data;
 using WarehouseApi.DTOs;
 using WarehouseApi.Models;
 using WarehouseApi.BackgroundJobs;
+using WarehouseApi.Services.Interface;
 
 namespace WarehouseApi.Controllers;
 
@@ -17,11 +18,13 @@ public class MovementsController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly IQueue _queue;
+    private readonly IProductService _productService;
 
-    public MovementsController(AppDbContext context, IQueue queue)
+    public MovementsController(AppDbContext context, IQueue queue, IProductService productService)
     {
         _context = context;
         _queue = queue;
+        _productService = productService;
     }
 
     [HttpPost]
@@ -38,7 +41,7 @@ public class MovementsController : ControllerBase
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            var product = await _context.Products.FindAsync(request.ProductId);
+            var product = await _productService.GetByIdAsync(request.ProductId);
             if (product == null)
             {
                 throw new KeyNotFoundException($"Produk dengan ID '{request.ProductId}' tidak ditemukan.");

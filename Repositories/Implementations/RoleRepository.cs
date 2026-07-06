@@ -2,8 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using WarehouseApi.Data;
 using WarehouseApi.Enums;
 using WarehouseApi.Models;
+using WarehouseApi.Repositories.Interface;
 
-namespace WarehouseApi.Repositories;
+namespace WarehouseApi.Repositories.Implementations;
 
 public class RoleRepository : IRoleRepository
 {
