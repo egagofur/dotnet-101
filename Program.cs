@@ -193,7 +193,7 @@ app.MapControllers();
 app.Services.UseScheduler(scheduler =>
 {
     scheduler.Schedule<DailyStockReportJob>()
-             .EveryMinute()
+             .DailyAt(10, 0)
              .PreventOverlapping("DailyStockReportJob");
 });
 
