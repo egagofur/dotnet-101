@@ -1,15 +1,22 @@
+using System;
+using System.Collections.Generic;
+
 namespace WarehouseApi.Models;
 
-public class Products
+public class Products : BaseModel
 {
-    public Guid Id { get; set; }
+    public Guid CategoryId { get; set; }
+    public ProductCategories? Category { get; set; }
+
     public required string Sku { get; set; }
     public required string Name { get; set; }
-    public int Stock { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
+    public required string Unit { get; set; }
+    public decimal Weight { get; set; }
+    public bool IsActive { get; set; } = true;
 
     // Navigation properties
-    public ICollection<InventoryMovements> Movements { get; set; } = new List<InventoryMovements>();
-    public ICollection<DailyStockReports> DailyReports { get; set; } = new List<DailyStockReports>();
+    public ICollection<ProductSuppliers> ProductSuppliers { get; set; } = new List<ProductSuppliers>();
+    public ICollection<StockLevels> StockLevels { get; set; } = new List<StockLevels>();
+    public ICollection<StockMovementItems> MovementItems { get; set; } = new List<StockMovementItems>();
+    public ICollection<DailyStockReportItems> DailyReportItems { get; set; } = new List<DailyStockReportItems>();
 }

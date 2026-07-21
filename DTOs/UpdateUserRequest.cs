@@ -18,7 +18,7 @@ public class UpdateUserRequest
     public required string Password { get; set; }
 
     [Required(ErrorMessage = "Role wajib dipilih.")]
-    public required RolesNameEnum Role { get; set; }
+    public required UserRole Role { get; set; }
 
     [Required(ErrorMessage = "Status wajib ditentukan.")]
     public required bool Status { get; set; } = true;

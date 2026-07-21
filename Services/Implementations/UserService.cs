@@ -3,19 +3,21 @@ using WarehouseApi.DTOs;
 using WarehouseApi.Models;
 using WarehouseApi.Repositories.Interface;
 using WarehouseApi.Services.Interface;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace WarehouseApi.Services.Implementations;
 
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
-    private readonly IRoleRepository _roleRepository;
     private readonly AppDbContext _context;
 
-    public UserService(IUserRepository userRepository, IRoleRepository roleRepository, AppDbContext context)
+    public UserService(IUserRepository userRepository, AppDbContext context)
     {
         _userRepository = userRepository;
-        _roleRepository = roleRepository;
         _context = context;
     }
 
@@ -40,13 +42,6 @@ public class UserService : IUserService
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            Console.WriteLine($"Role: {request.Role}");
-            var role = await _roleRepository.GetByNameAsync(request.Role);
-            if (role == null)
-            {
-                throw new ArgumentException($"Role '{request.Role}' not found in database.");
-            }
-
             var existingUser = await _userRepository.GetByEmailAsync(request.Email);
             if (existingUser != null)
             {
@@ -60,14 +55,13 @@ public class UserService : IUserService
                 Name = request.Name,
                 Email = request.Email,
                 Password = BCrypt.Net.BCrypt.HashPassword(request.Password),
-                RoleId = role.Id,
-                Status = request.Status,
+                Role = request.Role,
+                IsActive = request.Status,
                 CreatedAt = now,
                 UpdatedAt = now
             };
 
             var createdUser = await _userRepository.AddAsync(user);
-            createdUser.Role = role;
 
             await transaction.CommitAsync();
             return MapToResponse(createdUser);
@@ -90,12 +84,6 @@ public class UserService : IUserService
                 throw new KeyNotFoundException($"User dengan ID '{id}' tidak ditemukan.");
             }
 
-            var role = await _roleRepository.GetByNameAsync(request.Role);
-            if (role == null)
-            {
-                throw new ArgumentException($"Role '{request.Role}' tidak ditemukan.");
-            }
-
             // Check if email changed and is taken by another user
             if (!string.Equals(user.Email, request.Email, StringComparison.OrdinalIgnoreCase))
             {
@@ -109,8 +97,8 @@ public class UserService : IUserService
             user.Name = request.Name;
             user.Email = request.Email;
             user.Password = BCrypt.Net.BCrypt.HashPassword(request.Password);
-            user.RoleId = role.Id;
-            user.Status = request.Status;
+            user.Role = request.Role;
+            user.IsActive = request.Status;
             user.UpdatedAt = DateTime.UtcNow;
 
             var success = await _userRepository.UpdateAsync(user);
@@ -118,8 +106,6 @@ public class UserService : IUserService
             {
                 throw new Exception("Gagal memperbarui data user.");
             }
-
-            user.Role = role;
 
             await transaction.CommitAsync();
             return MapToResponse(user);
@@ -157,8 +143,8 @@ public class UserService : IUserService
             Id = user.Id,
             Name = user.Name,
             Email = user.Email,
-            Role = user.Role?.Name.ToString() ?? "Unknown",
-            Status = user.Status,
+            Role = user.Role.ToString(),
+            Status = user.IsActive,
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt
         };

@@ -1,13 +1,14 @@
+using System;
+using System.Collections.Generic;
+
 namespace WarehouseApi.Models;
 
-public class DailyStockReports
+public class DailyStockReports : BaseModel
 {
-    public Guid Id { get; set; }
-    public Guid ProductId { get; set; }
-    public int StockSnapshot { get; set; }
     public DateOnly ReportDate { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public Guid GeneratedByJob { get; set; }
+    public JobExecutions? GeneratedByJobNavigation { get; set; }
 
     // Navigation property
-    public Products? Product { get; set; }
+    public ICollection<DailyStockReportItems> Items { get; set; } = new List<DailyStockReportItems>();
 }

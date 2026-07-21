@@ -6,6 +6,9 @@ using WarehouseApi.DTOs;
 using WarehouseApi.Models;
 using WarehouseApi.Repositories.Interface;
 using WarehouseApi.Services.Interface;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace WarehouseApi.Services.Implementations;
 
@@ -29,7 +32,7 @@ public class AuthService : IAuthService
             throw new ArgumentException("Email atau password salah.");
         }
 
-        if (!user.Status)
+        if (!user.IsActive)
         {
             throw new InvalidOperationException("Akun Anda dinonaktifkan. Silakan hubungi administrator.");
         }
@@ -44,8 +47,8 @@ public class AuthService : IAuthService
                 Id = user.Id,
                 Name = user.Name,
                 Email = user.Email,
-                Role = user.Role?.Name.ToString() ?? "Unknown",
-                Status = user.Status,
+                Role = user.Role.ToString(),
+                Status = user.IsActive,
                 CreatedAt = user.CreatedAt,
                 UpdatedAt = user.UpdatedAt
             }
@@ -62,7 +65,7 @@ public class AuthService : IAuthService
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Name, user.Name),
-            new Claim(ClaimTypes.Role, user.Role?.Name.ToString() ?? "Unknown")
+            new Claim(ClaimTypes.Role, user.Role.ToString())
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor

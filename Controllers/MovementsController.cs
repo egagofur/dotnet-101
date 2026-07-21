@@ -3,9 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Coravel.Queuing.Interfaces;
 using System.Security.Claims;
+using System;
+using System.Threading.Tasks;
 using WarehouseApi.Data;
 using WarehouseApi.DTOs;
 using WarehouseApi.Models;
+using WarehouseApi.Enums;
 using WarehouseApi.BackgroundJobs;
 using WarehouseApi.Services.Interface;
 
@@ -47,34 +50,100 @@ public class MovementsController : ControllerBase
                 throw new KeyNotFoundException($"Produk dengan ID '{request.ProductId}' tidak ditemukan.");
             }
 
+            // Get or create a default warehouse & location to satisfy foreign key constraints
+            var location = await _context.WarehouseLocations.FirstOrDefaultAsync();
+            if (location == null)
+            {
+                var warehouse = await _context.Warehouses.FirstOrDefaultAsync();
+                if (warehouse == null)
+                {
+                    warehouse = new Warehouses
+                    {
+                        Id = Guid.NewGuid(),
+                        Code = "WH-DEFAULT",
+                        Name = "Default Warehouse",
+                        Address = "Default Address",
+                        City = "Default City",
+                        IsActive = true
+                    };
+                    await _context.Warehouses.AddAsync(warehouse);
+                }
+
+                location = new WarehouseLocations
+                {
+                    Id = Guid.NewGuid(),
+                    WarehouseId = warehouse.Id,
+                    Code = "LOC-DEFAULT",
+                    Zone = "A",
+                    Rack = "1",
+                    Bin = "1",
+                    IsActive = true
+                };
+                await _context.WarehouseLocations.AddAsync(location);
+                await _context.SaveChangesAsync();
+            }
+
+            // Update stock levels
+            var stockLevel = await _context.StockLevels
+                .FirstOrDefaultAsync(sl => sl.ProductId == product.Id && sl.WarehouseLocationId == location.Id);
+
+            if (stockLevel == null)
+            {
+                stockLevel = new StockLevels
+                {
+                    Id = Guid.NewGuid(),
+                    ProductId = product.Id,
+                    WarehouseLocationId = location.Id,
+                    Quantity = 0
+                };
+                await _context.StockLevels.AddAsync(stockLevel);
+            }
+
             if (request.Type == "IN")
             {
-                product.Stock += request.Quantity;
+                stockLevel.Quantity += request.Quantity;
             }
             else if (request.Type == "OUT")
             {
-                if (product.Stock < request.Quantity)
+                if (stockLevel.Quantity < request.Quantity)
                 {
-                    throw new InvalidOperationException($"Stok produk '{product.Name}' tidak mencukupi. Sisa stok: {product.Stock}");
+                    throw new InvalidOperationException($"Stok produk '{product.Name}' di lokasi '{location.Code}' tidak mencukupi. Sisa stok: {stockLevel.Quantity}");
                 }
-                product.Stock -= request.Quantity;
+                stockLevel.Quantity -= request.Quantity;
             }
+            stockLevel.UpdatedAt = DateTime.UtcNow;
 
-            product.UpdatedAt = DateTime.UtcNow;
-
-            var movement = new InventoryMovements
+            // Log stock movement
+            var movementType = request.Type == "IN" ? MovementType.INBOUND : MovementType.OUTBOUND;
+            var movement = new StockMovements
             {
                 Id = Guid.NewGuid(),
-                ProductId = product.Id,
-                Quantity = request.Quantity,
-                Type = request.Type,
-                UserId = userId,
-                CreatedAt = DateTime.UtcNow
+                MovementNumber = "MV-" + Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
+                Type = movementType,
+                Status = MovementStatus.COMPLETED,
+                CreatedBy = userId,
+                MovementDate = DateTime.UtcNow,
+                CompletedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
+            await _context.StockMovements.AddAsync(movement);
 
-            await _context.InventoryMovements.AddAsync(movement);
+            // Add movement item
+            var movementItem = new StockMovementItems
+            {
+                Id = Guid.NewGuid(),
+                MovementId = movement.Id,
+                ProductId = product.Id,
+                SourceLocationId = request.Type == "OUT" ? location.Id : null,
+                DestinationLocationId = request.Type == "IN" ? location.Id : null,
+                Quantity = request.Quantity,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            await _context.StockMovementItems.AddAsync(movementItem);
+
             await _context.SaveChangesAsync();
-
             await transaction.CommitAsync();
 
             var payload = new MovementPayload
